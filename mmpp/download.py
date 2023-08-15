@@ -130,8 +130,8 @@ def run_cmd(cmd:list):
 
 print('hi')
 
-file = 'TOPIA TWINS (Official Audio).mp4'
-print(get_mp4_meta(file_=file))
+# file = 'TOPIA TWINS (Official Audio).mp4'
+# print(get_mp4_meta(file_=file))
 # with open(file,'r+b') as f:
 #     media_file = mutagen.File(file, easy=True)
 #     # id_ = media_file['description'].split('/')[0]
@@ -165,3 +165,14 @@ print(get_mp4_meta(file_=file))
 #     else: 
 #         pass
 # print(res)
+ur = 'https://www.youtube.com/watch?v=6EEW-9NDM5k'
+meta_url  = f'https://youtube.com/oembed?url={ur}&format=json'
+yt = YouTube(ur)
+print(yt)
+print(type(yt))
+print(yt.__dict__)
+print(yt._vid_info)
+import requests
+
+r = requests.get(meta_url)
+print(r.json())

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# https://github.com/JayRizzo/MP3Player/blob/master/mp3TagEditor.py#L313
 # =============================================================================
 # Created Syst: macOS Monterey 12.5 (21G72) Kernel: Darwin 21.6.0
 # Created Plat: Python 3.10.5 ('v3.10.5:f377153967', 'Jun  6 2022 12:36:10')
