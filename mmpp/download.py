@@ -1,4 +1,5 @@
 from pytube import YouTube
+import mutagen
 #update cipher.py according to 
 #  https://github.com/pytube/pytube/issues/1201
 # var_regex = re.compile(r"^\$*\w+\W")
@@ -35,6 +36,29 @@ def vdo_info(yt:YouTube):
     # print(m.dict())
     return m
 
+def update_tags(media_file,m:MetaInfo):
+    with open(media_file, 'r+b') as file:
+        media_file = mutagen.File(file, easy=True)
+        # lg.info('before:', media_file, end='\n\n')
+        media_file['title'] = m.title
+        media_file['comment'] = m.yt_thmb
+        media_file['description'] = f'{m.id}/{m.views}/{m.length}'
+        media_file['album'] = 'xxx'
+        media_file['artist'] = 'jesus'
+        media_file.save(file)
+        # lg.info('after:', media_file.pprint(), end='\n\n')
+        # lg.info(type(media_file), type(media_file.tags), end='\n\n')
+        return True
+    
+def get_mp4_meta(file_):
+    with open(file_, 'r+b') as file:
+        media_file = mutagen.File(file, easy=True)
+        id_ = media_file['description'][0].split('/')[0]
+        views_ = media_file['description'][0].split('/')[1]
+        length_ = media_file['description'][0].split('/')[2]
+        m=MetaInfo(id=id_,title=media_file['title'][0],length=length_,views=views_,yt_thmb= media_file['comment'][0])
+    return m
+
 def download(url,play:bool=True)-> Records:
     yt = YouTube(url)
     st = datetime.datetime.utcnow()
@@ -55,13 +79,23 @@ def download(url,play:bool=True)-> Records:
     ts = et-st
     lg.info("ts: %s",ts.total_seconds())
     returning = Records(time=datetime.datetime.utcnow(),input_link=url,user='self',downloaded_in_s=ts.total_seconds(),meta=m)
+    
     if not play:
-        return returning
+        try:
+            r = update_tags(file_,m)
+            if r:
+                return returning
+            
+        except Exception as e:
+            return "Exception: updatetags"
+
     
     else:
         #@ change tile back to out file
        
         cmd = ["vlc",file_]
+        r = update_tags(file_,m)
+
         pid = run_cmd(cmd)
         lg.info('songs played pid: %s',pid)
         # f = subprocess.Popen(cmd)
@@ -95,6 +129,17 @@ def run_cmd(cmd:list):
     return pid
 
 print('hi')
+
+file = 'TOPIA TWINS (Official Audio).mp4'
+print(get_mp4_meta(file_=file))
+# with open(file,'r+b') as f:
+#     media_file = mutagen.File(file, easy=True)
+#     # id_ = media_file['description'].split('/')[0]
+#     print((media_file['description'][0].split('/')[0]))
+#     print(type(media_file['description']))
+#     # print(id_)
+# m=MetaInfo(id='xnd38cJ',title=file,length=230,views=12143,yt_thmb="abcd.com/sas/")
+# # print(update_tags(file,m))
 # m = vdo_info(url)
 # print(m.dict())
 # title='TOPIA TWINS (Official Audio).mp3'

@@ -8,7 +8,7 @@ import uvicorn
 from enum import Enum
 import os,subprocess
 from  config import settings
-from download import download,kill_by_pid,kill_all_vlc,MetaInfo,Records
+from download import download,kill_by_pid,kill_all_vlc,get_mp4_meta,MetaInfo,Records,update_tags
 # from kill import kill_by_pid
 active_pid = settings.ACTIVE_PID
 
@@ -50,13 +50,14 @@ class MixerRequest(BaseModel):
     mute:bool=False
 
 class PlayResponse(BaseModel):
-    out_file:str=None
+    meta:MetaInfo=None
     pid:int =None
     exception: str = None
     
 @app.get("/ydl/api/v1/now")
 def now_playing():
-    return settings.ACTIVE_PID 
+    r = {"pid":settings.ACTIVE_PID ,"uri":settings.ACTIVE_TITLE }
+    return r
 
 @app.post("/ydl/api/v1/download") #play by url 
 def trigger_download(input:DownloadRequest)->Records: 
@@ -77,6 +78,7 @@ def trigger_download(input:DownloadRequest)->Records:
             resp = download(url,play=input.play)
             # download_resp = 
             settings.ACTIVE_PID =resp.pid
+            settings.ACTIVE_TITLE =resp.time
             lg.info('respose" %s',resp.dict())
             return resp
  
@@ -91,7 +93,15 @@ def trigger_download(input:DownloadRequest)->Records:
 @app.post("/ydl/api/v1/play")
 def play_by_out_file(input:PlayRequest):
     cmd = ["vlc",input.uri]
+    try:
+        m = get_mp4_meta(input.uri)
+    except Exception as e:
+        lg.exception(e)
+        return "Exceptopm get mp4 meta"
     lg.info("active pid %s",settings.ACTIVE_PID)
+    
+    #async
+
     if settings.ACTIVE_PID !=0:
         try:
             r = kill_all_vlc()
@@ -105,7 +115,8 @@ def play_by_out_file(input:PlayRequest):
 
     f = subprocess.Popen(cmd)
     settings.ACTIVE_PID = f.pid
-    return PlayResponse(out_file=input.uri,pid=f.pid)
+    settings.ACTIVE_TITLE = input.uri
+    return PlayResponse(meta=m,pid=f.pid)
 
 
 
@@ -116,6 +127,7 @@ def kill(req:KillRequest=None):
         r = kill_all_vlc()
         if r:
             settings.ACTIVE_PID=0
+            settings.ACTIVE_TITLE='null'
             return True
 
     except Exception as e:

@@ -1,4 +1,5 @@
 from pytube import YouTube
+import mutagen
 #update cipher.py according to 
 #  https://github.com/pytube/pytube/issues/1201
 # var_regex = re.compile(r"^\$*\w+\W")
@@ -92,7 +93,26 @@ def run_cmd(cmd:list):
     print(f.__dict__)
     return pid
 
-    
+file = 'TOPIA TWINS (Official Audio).mp4'
+
+
+       
+
+def update_tags(media_file,m:MetaInfo):
+    with open('new.mp4', 'r+b') as file:
+        media_file = mutagen.File(file, easy=True)
+        print('before:', media_file.pprint(), end='\n\n')
+        media_file['title'] = m.title
+        media_file['album'] = 'xxx'
+        media_file['artist'] = 'jesus'
+        media_file['comment'] = m.yt_thmb
+        media_file['description'] = f'{m.id}/{m.views}/{m.length}'
+        media_file.save(file)
+        print('after:', media_file.pprint(), end='\n\n')
+        print(type(media_file), type(media_file.tags), end='\n\n')
+# m=MetaInfo(id='xnd38cJ',title=file,length=230,views=12143,yt_thmb="abcd.com/sas/")
+# print(update_tags(file,m))
+
 # m = vdo_info(url)
 # print(m.dict())
 # title='TOPIA TWINS (Official Audio).mp3'
