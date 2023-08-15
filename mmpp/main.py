@@ -56,8 +56,15 @@ class PlayResponse(BaseModel):
     
 @app.get("/ydl/api/v1/now")
 def now_playing():
-    r = {"pid":settings.ACTIVE_PID ,"uri":settings.ACTIVE_TITLE }
-    return r
+    if settings.ACTIVE_PID!=0:
+        f = f'{settings.ACTIVE_TITLE}.mp4'
+        m = get_mp4_meta(f)
+        b = {   "meta": m,"pid": settings.ACTIVE_PID }
+ 
+        # r = {"pid":settings.ACTIVE_PID ,"meta":m.d }
+        return b
+    else:
+        return "NOTHING"
 
 @app.post("/ydl/api/v1/download") #play by url 
 def trigger_download(input:DownloadRequest)->Records: 
@@ -78,7 +85,7 @@ def trigger_download(input:DownloadRequest)->Records:
             resp = download(url,play=input.play)
             # download_resp = 
             settings.ACTIVE_PID =resp.pid
-            settings.ACTIVE_TITLE =resp.time
+            settings.ACTIVE_TITLE =resp.meta.title
             lg.info('respose" %s',resp.dict())
             return resp
  
@@ -94,6 +101,7 @@ def trigger_download(input:DownloadRequest)->Records:
 def play_by_out_file(input:PlayRequest):
     cmd = ["vlc",input.uri]
     try:
+        m = get_mp4_meta(input.uri)
         m = get_mp4_meta(input.uri)
     except Exception as e:
         lg.exception(e)

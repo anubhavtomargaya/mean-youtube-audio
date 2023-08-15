@@ -51,12 +51,20 @@ def update_tags(media_file,m:MetaInfo):
         return True
     
 def get_mp4_meta(file_):
+
     with open(file_, 'r+b') as file:
         media_file = mutagen.File(file, easy=True)
-        id_ = media_file['description'][0].split('/')[0]
-        views_ = media_file['description'][0].split('/')[1]
-        length_ = media_file['description'][0].split('/')[2]
-        m=MetaInfo(id=id_,title=media_file['title'][0],length=length_,views=views_,yt_thmb= media_file['comment'][0])
+        try:
+            ttl_ =media_file['title'][0]
+            id_ = media_file['description'][0].split('/')[0]
+            views_ = media_file['description'][0].split('/')[1]
+            length_ = media_file['description'][0].split('/')[2]
+            thmb_=  media_file['comment'][0]
+        
+        except Exception as e:
+            id_,views_,length_,thmb_='hi',0,100,'url'
+            lg.exception(media_file.__repr__)
+        m=MetaInfo(id=id_,title=ttl_,length=length_,views=views_,yt_thmb=thmb_)
     return m
 
 def download(url,play:bool=True)-> Records:
@@ -91,7 +99,7 @@ def download(url,play:bool=True)-> Records:
 
     
     else:
-        #@ change tile back to out file
+       
        
         cmd = ["vlc",file_]
         r = update_tags(file_,m)
@@ -165,14 +173,14 @@ print('hi')
 #     else: 
 #         pass
 # print(res)
-ur = 'https://www.youtube.com/watch?v=6EEW-9NDM5k'
-meta_url  = f'https://youtube.com/oembed?url={ur}&format=json'
-yt = YouTube(ur)
-print(yt)
-print(type(yt))
-print(yt.__dict__)
-print(yt._vid_info)
-import requests
+# ur = 'https://www.youtube.com/watch?v=6EEW-9NDM5k'
+# meta_url  = f'https://youtube.com/oembed?url={ur}&format=json'
+# yt = YouTube(ur)
+# print(yt)
+# print(type(yt))
+# print(yt.__dict__)
+# print(yt._vid_info)
+# import requests
 
-r = requests.get(meta_url)
-print(r.json())
+# r = requests.get(meta_url)
+# print(r.json())
