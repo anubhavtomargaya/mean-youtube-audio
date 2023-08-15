@@ -1,14 +1,14 @@
-from fastapi import FastAPI,HTTPException,logger,Response
+from fastapi import FastAPI,HTTPException,Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-
+from fastapi.logger import logger as lg
 from starlette import status
 import uvicorn
 
 from enum import Enum
 import os,subprocess
 from  config import settings
-from download import download,kill_by_pid,kill_all_vlc
+from download import download,kill_by_pid,kill_all_vlc,MetaInfo,Records
 # from kill import kill_by_pid
 active_pid = settings.ACTIVE_PID
 
@@ -48,8 +48,8 @@ class MixerRequest(BaseModel):
     step_size:int=10
     mute:bool=False
 
-class DownloadResponse(BaseModel):
-    out_file: str
+class PlayResponse(BaseModel):
+    out_file:str=None
     pid:int =None
     exception: str = None
     
@@ -58,9 +58,9 @@ def now_playing():
     return settings.ACTIVE_PID 
 
 @app.post("/ydl/api/v1/download") #play by url 
-def trigger_download(input:DownloadRequest): 
+def trigger_download(input:DownloadRequest)->Records: 
 
-    logger.logger.error('input: %s',input.url)
+    lg.error('input: %s',input.url)
     try:
         url = input.url
         if settings.ACTIVE_PID !=0:
@@ -71,21 +71,26 @@ def trigger_download(input:DownloadRequest):
                     pass
             except Exception as e:
                 return False
-        resp = download(url,play=input.play)
-        logger.logger.info('respose" %s',type(resp))
-        logger.logger.info('respose" %s',resp)
-        settings.ACTIVE_PID =resp.pid
-        logger.logger.info('respose" %s',resp.dict())
-        return DownloadResponse(out_file=resp.meta.title,pid=resp.pid)
+        
+        try:
+            resp = download(url,play=input.play)
+            # download_resp = 
+            settings.ACTIVE_PID =resp.pid
+            lg.info('respose" %s',resp.dict())
+            return resp
  
+            
+        except Exception as e:
+            lg.exception(e)
+            return {"exception1":e.__class__}
          
     except Exception as e:
-        return False
+        return {"exception":e}
     
 @app.post("/ydl/api/v1/play")
 def play_by_out_file(input:PlayRequest):
     cmd = ["vlc",input.uri]
-    logger.logger.info("active pid %s",settings.ACTIVE_PID)
+    lg.info("active pid %s",settings.ACTIVE_PID)
     if settings.ACTIVE_PID !=0:
         try:
             r = kill_all_vlc()
@@ -99,7 +104,7 @@ def play_by_out_file(input:PlayRequest):
 
     f = subprocess.Popen(cmd)
     settings.ACTIVE_PID = f.pid
-    return DownloadResponse(out_file=input.uri,pid=f.pid)
+    return PlayResponse(out_file=input.uri,pid=f.pid)
 
 
 
@@ -129,7 +134,7 @@ def kill(req:KillRequest=None):
 
 @app.post("/ydl/api/v1/mixer")
 def control_mixer(req:MixerRequest):
-    logger.logger.info(req.__dict__)
+    lg.info(req.__dict__)
     value = mixer.getvolume()[0]
  
     if req.volume=='UP':
@@ -137,7 +142,7 @@ def control_mixer(req:MixerRequest):
     elif req.volume=='DOWN':
         value = value-req.step_size
     else:
-        logger.logger.exception('Invalid Command')
+        lg.exception('Invalid Command')
         return False
     if value > 100:
         value = 100

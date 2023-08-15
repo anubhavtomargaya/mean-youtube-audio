@@ -2,15 +2,15 @@ from pytube import YouTube
 #update cipher.py according to 
 #  https://github.com/pytube/pytube/issues/1201
 # var_regex = re.compile(r"^\$*\w+\W")
-from fastapi.logger import logger as lg
+# from fastapi.logger import logger as lg
 from pydantic import BaseModel
 import os,subprocess
 import logging
 import subprocess
 import datetime
 
-# lg = logging.getLogger(__name__)
-# logging.basicConfig(level=logging.DEBUG)
+lg = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
 
 
 class MetaInfo(BaseModel):
@@ -35,41 +35,43 @@ def vdo_info(yt:YouTube):
     # print(m.dict())
     return m
 
-def download(url,play:bool=True):
+def download(url,play:bool=True)-> Records:
     yt = YouTube(url)
     st = datetime.datetime.utcnow()
     lg.info('downloading file.....')
     video = yt.streams.filter(only_audio=True).first()
-    lg.info('downloading file.....')
-    out_file = video.download(output_path=".")
+    lg.info('downloading file.....') #catch errors here
+    out_file = video.download(output_path=".") #get full path of downloaded file as output
+    file_ = out_file.split('/')[-1] #used for playing the file from vlc CLI later
     lg.info('downloading file.....')
     lg.info('out_file: %s',out_file)
     et = datetime.datetime.utcnow()
     lg.info('downloading meta.....')
     m = vdo_info(yt)
-    title = m.title
+    # title = m.title
     lg.info("m: %s",m)
     lg.info("url: %s",url)
     lg.info("url: %s")
     ts = et-st
     lg.info("ts: %s",ts.total_seconds())
     returning = Records(time=datetime.datetime.utcnow(),input_link=url,user='self',downloaded_in_s=ts.total_seconds(),meta=m)
-    lg.info("returning: %s",returning)
     if not play:
         return returning
     
     else:
-        cmd = ["vlc",title]
+        #@ change tile back to out file
+       
+        cmd = ["vlc",file_]
         pid = run_cmd(cmd)
         lg.info('songs played pid: %s',pid)
         # f = subprocess.Popen(cmd)
         returning.pid=pid
         lg.info('songs played pid: %s',returning.pid)
         lg.info('typetype: %s',type(returning))
-        # pid = f.pid
+
         return returning
 
-url = 'https://www.youtube.com/watch?v=J4nvbKBuEBU'
+# url = 'https://www.youtube.com/watch?v=J4nvbKBuEBU'
 # 
 
 # subprocess.Popen(["rm","-r","some.file"])
@@ -87,19 +89,18 @@ def kill_all_vlc():
 def run_cmd(cmd:list):
     f= subprocess.Popen(cmd)
     pid =f.pid
-    print(pid)
-    print(type(f))
-    print(f.__dict__)
+    lg.info(pid)
+    lg.info(type(f))
+    # print(f.__dict__)
     return pid
 
-    
+print('hi')
 # m = vdo_info(url)
 # print(m.dict())
 # title='TOPIA TWINS (Official Audio).mp3'
 # cmd = ["vlc",title]
 # url = 'https://www.youtube.com/watch?v=Hm1YFszJWbQ'
 # print(download(url))
-# print('hi')
 # outfile = download(url)
 # print(outfile.split('/')[-1])
 # run_cmd()
