@@ -14,6 +14,7 @@ active_pid = settings.ACTIVE_PID
 
 origins = [
     "http://192.168.0.102:3000",
+    "http://192.168.1.5:3000",
     "http://10.5.40.167:8086",
     "https://localhost.redbus.com",
     "http://localhost:3001",
