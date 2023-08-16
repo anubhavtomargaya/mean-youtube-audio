@@ -8,17 +8,20 @@ shutil.copy('SICKO MODE.mp4', 'new.mp4')
 #
 # https://mutagen.readthedocs.io/en/latest/user/gettingstarted.html    
 # https://mutagen.readthedocs.io/en/latest/api/base.html#mutagen.File
-
+from datetime import datetime
+import time
 with open('Jhoome Jo Pathaan.mp4', 'r+b') as file:
     media_file = mutagen.File(file, easy=True)
     print('before:', media_file.pprint(), end='\n\n')
-    # media_file['title'] = 'my title'
+    # print(media_file['date'])
+    # print(media_file['tracknumber'])
+    media_file.tracknumber = float(time.time())
     # media_file['album'] = 'my album'
     # media_file['artist'] = 'my artist'
     media_file.save(file)
     print('after:', media_file.pprint(), end='\n\n')
     print(type(media_file), type(media_file.tags), end='\n\n')
-
+print()
 # Alternatively, you can use the explicit file type classes, e.g.
 #
 #   with open('new.mp4', 'r+b') as file:

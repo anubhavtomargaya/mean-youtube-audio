@@ -42,7 +42,8 @@ class KillRequest(BaseModel):
     all:bool=False
     
 class PlayRequest(BaseModel):
-    uri : str
+    uri : str=None
+    surprise:bool=False
     
 class MixerRequest(BaseModel):
     volume : str='DOWN'
@@ -99,13 +100,20 @@ def trigger_download(input:DownloadRequest)->Records:
     
 @app.post("/ydl/api/v1/play")
 def play_by_out_file(input:PlayRequest):
-    cmd = ["vlc",input.uri]
-    try:
-        m = get_mp4_meta(input.uri)
-        m = get_mp4_meta(input.uri)
-    except Exception as e:
-        lg.exception(e)
-        return "Exceptopm get mp4 meta"
+    if input.uri:
+        cmd = ["vlc",input.uri]
+        try:
+            m = get_mp4_meta(input.uri)
+            curr_playing_title = input.uri
+        except Exception as e:
+            lg.exception(e)
+            return "Exceptopm get mp4 meta"
+    elif input.surprise:
+        radio_stream = 'http://www.radioparadise.com/m3u/aac-128.m3u'
+        curr_playing_title = 'radio'
+        m= MetaInfo()
+        cmd = ["vlc",radio_stream,'--audio-visual','visual','--effect-list' ,'spectrum' ]
+
     lg.info("active pid %s",settings.ACTIVE_PID)
     
     #async
@@ -123,7 +131,8 @@ def play_by_out_file(input:PlayRequest):
 
     f = subprocess.Popen(cmd)
     settings.ACTIVE_PID = f.pid
-    settings.ACTIVE_TITLE = input.uri
+    
+    settings.ACTIVE_TITLE = curr_playing_title
     return PlayResponse(meta=m,pid=f.pid)
 
 
@@ -174,8 +183,7 @@ def control_mixer(req:MixerRequest):
     mixer.setvolume(value)
     value = mixer.getvolume()[0]
     return value
-   
-    return res
+
     
 
 

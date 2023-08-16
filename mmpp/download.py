@@ -35,14 +35,14 @@ def vdo_info(yt:YouTube):
     m = MetaInfo(id=yt.video_id, title=yt.title,length=yt.length,views=yt.views,yt_thmb=yt.thumbnail_url)
     # print(m.dict())
     return m
-
+import time
 def update_tags(media_file,m:MetaInfo):
     with open(media_file, 'r+b') as file:
         media_file = mutagen.File(file, easy=True)
         # lg.info('before:', media_file, end='\n\n')
         media_file['title'] = m.title
         media_file['comment'] = m.yt_thmb
-        media_file['description'] = f'{m.id}/{m.views}/{m.length}'
+        media_file['description'] = f'{time.time()}/{m.id}/{m.views}/{m.length}'
         media_file['album'] = 'xxx'
         media_file['artist'] = 'jesus'
         media_file.save(file)
