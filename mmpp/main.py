@@ -112,7 +112,7 @@ def play_by_out_file(input:PlayRequest):
         radio_stream = 'http://www.radioparadise.com/m3u/aac-128.m3u'
         curr_playing_title = 'radio'
         m= MetaInfo()
-        cmd = ["vlc",radio_stream,'--audio-visual','visual','--effect-list' ,'spectrum' ]
+        cmd = ["vlc",radio_stream]
 
     lg.info("active pid %s",settings.ACTIVE_PID)
     
