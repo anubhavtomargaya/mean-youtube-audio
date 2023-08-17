@@ -65,7 +65,6 @@ def update_tags(media_file,m:MetaInfo):
         # lg.info('after:', media_file.pprint(), end='\n\n')
         # lg.info(type(media_file), type(media_file.tags), end='\n\n')
         return True
-    
 def get_mp4_meta(file_):
 
     with open(file_, 'r+b') as file:
@@ -85,7 +84,6 @@ def get_mp4_meta(file_):
                 return False
             
             lg.info('stuff %s %s %s',history_ts_,views_,id_)
-
             ttl_ =media_file['title'][0]
             thmb_=  media_file['comment'][0]
             lg.info('stuff %s %s %s',ttl_,thmb_)
