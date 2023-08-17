@@ -216,11 +216,12 @@ def kill(req:KillRequest=None):
         
         r = kill_all_vlc()
         if r:
-            settings.ACTIVE_PID=0
-            settings.ACTIVE_TITLE='null'
             dttm_now = datetime.datetime.utcnow()
             ux_ts = calendar.timegm(dttm_now.utctimetuple())
             lg.warn('KILL/%s/%s/%s/%s/%s','N','user',int(float(ux_ts)),settings.ACTIVE_TITLE,settings.ACTIVE_PID)
+            
+            settings.ACTIVE_PID=0
+            settings.ACTIVE_TITLE='null'
             return True
 
     except Exception as e:
