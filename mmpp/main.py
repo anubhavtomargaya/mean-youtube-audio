@@ -246,9 +246,9 @@ def control_mixer(req:MixerRequest):
     ux_ts = calendar.timegm(dttm_now.utctimetuple())
     if req.volume=='UP':
         value = value+req.step_size
-        lg.warn('VOLUMEUP/%s/%s/%s/%s/%s','N','user',int(float(ux_ts)),'N',settings.ACTIVE_PID)
+        lg.warn('VOLUMEUP/%s/%s/%s/%s/%s',value,'user',int(float(ux_ts)),settings.ACTIVE_TITLE,settings.ACTIVE_PID)
     elif req.volume=='DOWN':
-        lg.warn('VOLUMEDOWN/%s/%s/%s/%s/%s','N','user',int(float(ux_ts)),'N',settings.ACTIVE_PID)
+        lg.warn('VOLUMEDOWN/%s/%s/%s/%s/%s',value,'user',int(float(ux_ts)),settings.ACTIVE_TITLE,settings.ACTIVE_PID)
         value = value-req.step_size
     else:
         lg.exception('Invalid Command')
@@ -257,6 +257,7 @@ def control_mixer(req:MixerRequest):
         value = 100
 
     if req.mute:
+        lg.warn('VOLUMEMUTE/%s/%s/%s/%s/%s',value,'user',int(float(ux_ts)),settings.ACTIVE_TITLE,settings.ACTIVE_PID)
         value = 0
        
     mixer.setvolume(value)
