@@ -129,7 +129,7 @@ def trigger_download(input:DownloadRequest)->Records:
         return {"exception":e}
 import time ,calendar,datetime
 @app.post("/ydl/api/v1/play")
-def play_by_out_file(input:PlayRequest,autoplay:bool=True,visualiser:bool=False): 
+def play_by_out_file(input:PlayRequest,autoplay:bool=True,visualiser:bool=True): 
     ## here autoplay takes you to internet radio
     
     radio_stream = 'http://www.radioparadise.com/m3u/aac-128.m3u'
