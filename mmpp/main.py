@@ -3,8 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from fastapi.logger import logger as lg
 from starlette import status
+import mutagen
 import uvicorn
-
+import logging
+lg.setLevel(logging.DEBUG)
 from enum import Enum
 import os,subprocess
 from  config import settings
@@ -116,12 +118,41 @@ def trigger_download(input:DownloadRequest)->Records:
 def play_by_out_file(input:PlayRequest,autoplay:bool=True,visualiser:bool=False): 
     ## here autoplay takes you to internet radio
     
+    def get_mp4_meta(file_):
+
+        with open(file_, 'r+b') as file:
+            media_file = mutagen.File(file, easy=True)
+            try:
+                desc = media_file['description'][0].split('/')
+                if len(desc)>3:
+                    lg.info('>')
+                    history_ts_,id_,views_,length_ = media_file['description'][0].split('/')
+                elif len(desc)==3:
+                    lg.info('=')
+                    id_,views_,length_ = media_file['description'][0].split('/')
+                    
+                else:
+                    lg.info('nno')
+                    lg.exception(media_file.__repr__)
+                    return False
+                
+                lg.info('stuff %s %s %s',history_ts_,views_,id_)
+                ttl_ =media_file['title'][0]
+                thmb_=  media_file['comment'][0]
+                lg.info('stuff %s %s %s',ttl_,thmb_)
+            
+            except Exception as e:
+                id_,views_,length_,thmb_='hi',0,100,'url'
+                lg.exception('GetMetaException: %s',e.__class__)
+            m=MetaInfo(history_ts=history_ts_, id=id_,title=ttl_,length=length_,views=views_,yt_thmb=thmb_)
+        return m
     radio_stream = 'http://www.radioparadise.com/m3u/aac-128.m3u'
     visualiser_spec = ['--audio-visual' ,'visual',
                         '--effect-list', 'spectrometer' , 
                         '--spect-radius=100', '--spect-peak-width=40' ,
                         '--spect-peak-height=10' ,'--spect-separ=100' ,
                         '--spect-sections=2' , '--spect-amp=10' ,'--spect-color=100' ]
+                        
     if input.uri:
     
         base_cmd = ["vlc",input.uri]
@@ -129,6 +160,8 @@ def play_by_out_file(input:PlayRequest,autoplay:bool=True,visualiser:bool=False)
             try:
                 cmd = base_cmd
                 m = get_mp4_meta(input.uri)
+                if not m:
+                    lg.error('m not received')
                 curr_playing_title = input.uri
             except Exception as e:
                 lg.exception(e)
@@ -167,6 +200,7 @@ def play_by_out_file(input:PlayRequest,autoplay:bool=True,visualiser:bool=False)
         settings.ACTIVE_PID = f.pid
         
         settings.ACTIVE_TITLE = curr_playing_title
+        lg.info('m %s',m.dict())
         return PlayResponse(meta=m,pid=f.pid)
     except Exception as e:
         return f"PlayerException {e.__class__}"

@@ -85,6 +85,7 @@ def get_mp4_meta(file_):
                 return False
             
             lg.info('stuff %s %s %s',history_ts_,views_,id_)
+
             ttl_ =media_file['title'][0]
             thmb_=  media_file['comment'][0]
             lg.info('stuff %s %s %s',ttl_,thmb_)
@@ -94,7 +95,6 @@ def get_mp4_meta(file_):
             lg.exception('GetMetaException: %s',e.__class__)
         m=MetaInfo(history_ts=history_ts_, id=id_,title=ttl_,length=length_,views=views_,yt_thmb=thmb_)
     return m
-
 
 def list_():
     files = os.listdir(os.curdir)
