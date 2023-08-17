@@ -74,7 +74,7 @@ def get_mp4_meta(file_):
             if len(desc)>3:
                 lg.info('>')
                 history_ts_,id_,views_,length_ = media_file['description'][0].split('/')
-                history_ts_= int(history_ts_)
+                history_ts_= int(float(history_ts_))
             elif len(desc)==3:
                 lg.info('=')
                 id_,views_,length_ = media_file['description'][0].split('/')
@@ -88,12 +88,13 @@ def get_mp4_meta(file_):
             ttl_ =media_file['title'][0]
             thmb_=  media_file['comment'][0]
             lg.info('stuff %s %s',ttl_,thmb_)
+            m=MetaInfo(history_ts=history_ts_, id=id_,title=ttl_,length=length_,views=views_,yt_thmb=thmb_)
+            return m
         
         except Exception as e:
             id_,views_,length_,thmb_='hi',0,100,'url'
             lg.exception('GetMetaException: %s',e.__class__)
-        m=MetaInfo(history_ts=history_ts_, id=id_,title=ttl_,length=length_,views=views_,yt_thmb=thmb_)
-    return m
+            return False
 
 def list_():
     files = os.listdir(os.curdir)
