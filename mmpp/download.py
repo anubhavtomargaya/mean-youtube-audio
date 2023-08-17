@@ -74,6 +74,7 @@ def get_mp4_meta(file_):
             if len(desc)>3:
                 lg.info('>')
                 history_ts_,id_,views_,length_ = media_file['description'][0].split('/')
+                history_ts_= int(history_ts_)
             elif len(desc)==3:
                 lg.info('=')
                 id_,views_,length_ = media_file['description'][0].split('/')

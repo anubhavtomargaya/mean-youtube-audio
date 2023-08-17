@@ -23,7 +23,7 @@ with open('YehAllah.mp4', 'r+b') as file:
     dttm_now = datetime.utcnow()
     ux_ts = calendar.timegm(dttm_now.utctimetuple())
     print(ux_ts)
-    
+
     # print(time.mktime(dttm_now.utctimetuple()))
     # media_file.tracknumber =1
     # media_file['album'] = 'my album'
@@ -50,3 +50,5 @@ from mutagen.easyid3 import EasyID3
 
 print('mp3 tags:', *sorted(EasyID3.Set.keys()), end='\n\n')
 print('mp4 tags:', *sorted(EasyMP4Tags.Set.keys()), end='\n\n')
+a = 1.23242
+print(int(a))
