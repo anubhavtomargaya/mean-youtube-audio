@@ -10,12 +10,22 @@ shutil.copy('SICKO MODE.mp4', 'new.mp4')
 # https://mutagen.readthedocs.io/en/latest/api/base.html#mutagen.File
 from datetime import datetime
 import time
-with open('Jhoome Jo Pathaan.mp4', 'r+b') as file:
+import calendar
+with open('YehAllah.mp4', 'r+b') as file:
     media_file = mutagen.File(file, easy=True)
     print('before:', media_file.pprint(), end='\n\n')
     # print(media_file['date'])
     # print(media_file['tracknumber'])
-    media_file.tracknumber = float(time.time())
+    # print(media_file['tracknumber'])
+    # print(time.time()*1000)
+    # print(datetime.utcnow())
+    # print(time.time().__str__())
+    dttm_now = datetime.utcnow()
+    ux_ts = calendar.timegm(dttm_now.utctimetuple())
+    print(ux_ts)
+    
+    # print(time.mktime(dttm_now.utctimetuple()))
+    # media_file.tracknumber =1
     # media_file['album'] = 'my album'
     # media_file['artist'] = 'my artist'
     media_file.save(file)

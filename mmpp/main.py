@@ -54,6 +54,20 @@ class PlayResponse(BaseModel):
     meta:MetaInfo=None
     pid:int =None
     exception: str = None
+
+# from enum import Enum
+# class VisualiserType(str, Enum):
+#     spectrometer = "spectrometer"
+#     goom = "goom"
+
+
+class SpectrometerVisualiser(BaseModel):
+    radius:int
+    color:int
+    amp:int
+    spear:int
+    peakWd:int
+    peakHt:int
     
 @app.get("/ydl/api/v1/now")
 def now_playing():
@@ -99,18 +113,33 @@ def trigger_download(input:DownloadRequest)->Records:
         return {"exception":e}
     
 @app.post("/ydl/api/v1/play")
-def play_by_out_file(input:PlayRequest):
+def play_by_out_file(input:PlayRequest,autoplay:bool=True,visualiser:bool=False): 
+    ## here autoplay takes you to internet radio
+    
+    radio_stream = 'http://www.radioparadise.com/m3u/aac-128.m3u'
+    visualiser_spec = ['--audio-visual' ,'visual',
+                        '--effect-list', 'spectrometer' , 
+                        '--spect-radius=100', '--spect-peak-width=40' ,
+                        '--spect-peak-height=10' ,'--spect-separ=100' ,
+                        '--spect-sections=2' , '--spect-amp=10' ,'--spect-color=100' ]
     if input.uri:
-        cmd = ["vlc",input.uri]
-        try:
-            m = get_mp4_meta(input.uri)
-            curr_playing_title = input.uri
-        except Exception as e:
-            lg.exception(e)
-            return "Exceptopm get mp4 meta"
+    
+        base_cmd = ["vlc",input.uri]
+        if not autoplay:
+            try:
+                cmd = base_cmd
+                m = get_mp4_meta(input.uri)
+                curr_playing_title = input.uri
+            except Exception as e:
+                lg.exception(e)
+        else:
+            #always play radio after a play by default,
+            # optionally can add a justonce bool to have last version behaviour
+            cmd = base_cmd+[radio_stream]
+            # return "Exceptopm get mp4 meta"
+        
     elif input.surprise:
-        radio_stream = 'http://www.radioparadise.com/m3u/aac-128.m3u'
-        curr_playing_title = 'radio'
+        curr_playing_title = 'A SURPRISE' #find the title from radio
         m= MetaInfo()
         cmd = ["cvlc",radio_stream]
 
@@ -128,12 +157,19 @@ def play_by_out_file(input:PlayRequest):
             return False
     else:
         pass
+    try:
 
-    f = subprocess.Popen(cmd)
-    settings.ACTIVE_PID = f.pid
-    
-    settings.ACTIVE_TITLE = curr_playing_title
-    return PlayResponse(meta=m,pid=f.pid)
+        if not visualiser:
+            f = subprocess.Popen(cmd)
+        else:
+            cmd = cmd + visualiser_spec
+            f = subprocess.Popen(cmd)
+        settings.ACTIVE_PID = f.pid
+        
+        settings.ACTIVE_TITLE = curr_playing_title
+        return PlayResponse(meta=m,pid=f.pid)
+    except Exception as e:
+        return f"PlayerException {e.__class__}"
 
 
 

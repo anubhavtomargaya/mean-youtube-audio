@@ -15,6 +15,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 class MetaInfo(BaseModel):
+    history_ts:int=None
     id:str =None
     title:str=None
     length:int=None
@@ -29,20 +30,35 @@ class Records(BaseModel):
     pid:int=None
     meta:MetaInfo=None
 
+class Mp4Description(BaseModel):
+    time:int
+    id:str
+    views:int
+    length:float
 
+class MediaFile(BaseModel):
+    title:str
+    description:Mp4Description
+    comment:str
+    
 def vdo_info(yt:YouTube):
     # print(yt.__dict__)
     m = MetaInfo(id=yt.video_id, title=yt.title,length=yt.length,views=yt.views,yt_thmb=yt.thumbnail_url)
     # print(m.dict())
     return m
-import time
+# import time
+import calendar
 def update_tags(media_file,m:MetaInfo):
+    dttm_now = datetime.datetime.utcnow()
+    ux_ts = calendar.timegm(dttm_now.utctimetuple())
+    print(ux_ts)
+ 
     with open(media_file, 'r+b') as file:
         media_file = mutagen.File(file, easy=True)
         # lg.info('before:', media_file, end='\n\n')
         media_file['title'] = m.title
         media_file['comment'] = m.yt_thmb
-        media_file['description'] = f'{time.time()}/{m.id}/{m.views}/{m.length}'
+        media_file['description'] = f'{ux_ts}/{m.id}/{m.views}/{m.length}' #remember this
         media_file['album'] = 'xxx'
         media_file['artist'] = 'jesus'
         media_file.save(file)
@@ -55,19 +71,42 @@ def get_mp4_meta(file_):
     with open(file_, 'r+b') as file:
         media_file = mutagen.File(file, easy=True)
         try:
+            desc = media_file['description'][0].split('/')
+            if len(desc)>3:
+                history_ts_,id_,views_,length_ = media_file['description'][0].split('/')
+            elif len(desc)==3:
+                id_,views_,length_ = media_file['description'][0].split('/')
+            else:
+                lg.exception(media_file.__repr__)
+                return False
             ttl_ =media_file['title'][0]
-            id_ = media_file['description'][0].split('/')[0]
-            views_ = media_file['description'][0].split('/')[1]
-            length_ = media_file['description'][0].split('/')[2]
             thmb_=  media_file['comment'][0]
         
         except Exception as e:
             id_,views_,length_,thmb_='hi',0,100,'url'
             lg.exception(media_file.__repr__)
-        m=MetaInfo(id=id_,title=ttl_,length=length_,views=views_,yt_thmb=thmb_)
+        m=MetaInfo(history_ts=history_ts_, id=id_,title=ttl_,length=length_,views=views_,yt_thmb=thmb_)
     return m
 
-def download(url,play:bool=True)-> Records:
+
+def list_():
+    files = os.listdir(os.curdir)
+    media = [x if '.mp4' in x else None  for x in files]
+    print(files)
+    print(media)
+    res = {"media":[]}
+    for i in media:
+        if i is not None:
+            # print(i)
+            # print(type(i))
+            res['media'].append(i)
+
+        else: 
+            pass
+    return res['media']
+# import numpy as np
+import random
+def download(url,play:bool=True,autoplay:bool=True)-> Records:
     yt = YouTube(url)
     st = datetime.datetime.utcnow()
     lg.info('downloading file.....')
@@ -100,8 +139,22 @@ def download(url,play:bool=True)-> Records:
     
     else:
        
-       
-        cmd = ["vlc",file_]
+        base_cmd = ["vlc",file_]
+        if not autoplay:
+            cmd = base_cmd
+        else:
+            files=list_()
+
+
+            # print('files',files)
+            # f_list = list(filter(lambda item: item is not None, files))
+
+            # print('flist',files)
+            up_next = random.shuffle(files)
+            print('up',files)
+            cmd = base_cmd + files + ['--play-and-exit']
+            print(cmd)
+
         r = update_tags(file_,m)
 
         pid = run_cmd(cmd)
@@ -137,7 +190,7 @@ def run_cmd(cmd:list):
     return pid
 
 print('hi')
-
+print(list())
 # file = 'TOPIA TWINS (Official Audio).mp4'
 # print(get_mp4_meta(file_=file))
 # with open(file,'r+b') as f:
