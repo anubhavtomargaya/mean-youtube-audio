@@ -48,6 +48,7 @@ def vdo_info(yt:YouTube):
     return m
 # import time
 import calendar
+
 def update_tags(media_file,m:MetaInfo):
     dttm_now = datetime.datetime.utcnow()
     ux_ts = calendar.timegm(dttm_now.utctimetuple())
@@ -65,6 +66,7 @@ def update_tags(media_file,m:MetaInfo):
         # lg.info('after:', media_file.pprint(), end='\n\n')
         # lg.info(type(media_file), type(media_file.tags), end='\n\n')
         return True
+    
 def get_mp4_meta(file_):
 
     with open(file_, 'r+b') as file:
@@ -78,13 +80,14 @@ def get_mp4_meta(file_):
             elif len(desc)==3:
                 lg.info('=')
                 id_,views_,length_ = media_file['description'][0].split('/')
+                history_ts_=0
                 
             else:
                 lg.info('nno')
                 lg.exception(media_file.__repr__)
                 return False
             
-            lg.info('stuff %s %s %s',history_ts_,views_,id_)
+            # lg.info('stuff %s %s %s',history_ts_,views_,id_)
             ttl_ =media_file['title'][0]
             thmb_=  media_file['comment'][0]
             lg.info('stuff %s %s',ttl_,thmb_)
@@ -95,7 +98,6 @@ def get_mp4_meta(file_):
             id_,views_,length_,thmb_='hi',0,100,'url'
             lg.exception('GetMetaException: %s',e.__class__)
             return False
-
 def list_():
     files = os.listdir(os.curdir)
     media = [x if '.mp4' in x else None  for x in files]
@@ -134,6 +136,8 @@ def download(url,play:bool=True,autoplay:bool=True)-> Records:
     lg.info("ts: %s",ts.total_seconds())
     returning = Records(time=datetime.datetime.utcnow(),input_link=url,user='self',downloaded_in_s=ts.total_seconds(),meta=m)
     
+    ##comit to db
+
     if not play:
         try:
             r = update_tags(file_,m)

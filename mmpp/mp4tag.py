@@ -11,7 +11,7 @@ shutil.copy('SICKO MODE.mp4', 'new.mp4')
 from datetime import datetime
 import time
 import calendar
-with open('YehAllah.mp4', 'r+b') as file:
+with open('Slippery.mp4', 'r+b') as file:
     media_file = mutagen.File(file, easy=True)
     print('before:', media_file.pprint(), end='\n\n')
     # print(media_file['date'])

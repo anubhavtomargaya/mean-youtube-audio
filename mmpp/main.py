@@ -74,12 +74,19 @@ class SpectrometerVisualiser(BaseModel):
 @app.get("/ydl/api/v1/now")
 def now_playing():
     if settings.ACTIVE_PID!=0:
-        f = f'{settings.ACTIVE_TITLE}.mp4'
-        m = get_mp4_meta(f)
-        b = {   "meta": m,"pid": settings.ACTIVE_PID }
- 
-        # r = {"pid":settings.ACTIVE_PID ,"meta":m.d }
-        return b
+        dttm_now = datetime.datetime.utcnow()
+        ux_ts = calendar.timegm(dttm_now.utctimetuple())
+        lg.warn('NOW/%s/%s/%s/%s/%s','CHECK','user',int(float(ux_ts)),settings.ACTIVE_TITLE,settings.ACTIVE_PID)
+        if not settings.ACTIVE_TITLE=='STREAM':
+            f = f'{settings.ACTIVE_TITLE}.mp4'
+            m = get_mp4_meta(f) #MetaInfo
+            b = {   "meta": m,"pid": settings.ACTIVE_PID }
+    
+            # r = {"pid":settings.ACTIVE_PID ,"meta":m.d }
+            return b
+        else:
+            b = {   "meta":settings.ACTIVE_TITLE ,"pid": settings.ACTIVE_PID }
+            return b
     else:
         return "NOTHING"
 
@@ -90,6 +97,9 @@ def trigger_download(input:DownloadRequest)->Records:
     try:
         url = input.url
         if settings.ACTIVE_PID !=0:
+            dttm_now = datetime.datetime.utcnow()
+            ux_ts = calendar.timegm(dttm_now.utctimetuple())
+            lg.warn('SKIPPLAY/%s/%s/%s/%s/%s',url,'user',int(float(ux_ts)),settings.ACTIVE_TITLE,settings.ACTIVE_PID)
             try:
                 r = kill_all_vlc()
                 if r:
@@ -100,10 +110,14 @@ def trigger_download(input:DownloadRequest)->Records:
         
         try:
             resp = download(url,play=input.play)
-            # download_resp = 
+            dttm_now = datetime.datetime.utcnow()
+            ux_ts = calendar.timegm(dttm_now.utctimetuple())
+            # download_resp = f
             settings.ACTIVE_PID =resp.pid
             settings.ACTIVE_TITLE =resp.meta.title
             lg.info('respose" %s',resp.dict())
+            ts_id = f"""{str(resp.meta.id)+ " - " + str(resp.downloaded_in_s)}"""
+            lg.warn('DOWNLOAD/%s/%s/%s/%s/%s',ts_id ,'user',int(float(ux_ts)),settings.ACTIVE_TITLE,settings.ACTIVE_PID)
             return resp
  
             
@@ -113,7 +127,7 @@ def trigger_download(input:DownloadRequest)->Records:
          
     except Exception as e:
         return {"exception":e}
-    
+import time ,calendar,datetime
 @app.post("/ydl/api/v1/play")
 def play_by_out_file(input:PlayRequest,autoplay:bool=True,visualiser:bool=False): 
     ## here autoplay takes you to internet radio
@@ -126,13 +140,15 @@ def play_by_out_file(input:PlayRequest,autoplay:bool=True,visualiser:bool=False)
                         '--spect-sections=2' , '--spect-amp=10' ,'--spect-color=100' ]
                         
     if input.uri:
-    
+        lg.info('uri')
+        
         base_cmd = ["vlc",input.uri]
-        curr_playing_title = input.uri
-
+        curr_playing_title = input.uri.split('.')[0]
+        
         m = get_mp4_meta(input.uri)
+
         if not m:
-            lg.error('m not received')
+            lg.warn('m not received')
 
         if not autoplay:
             try:
@@ -146,15 +162,22 @@ def play_by_out_file(input:PlayRequest,autoplay:bool=True,visualiser:bool=False)
             # return "Exceptopm get mp4 meta"
         
     elif input.surprise:
-        curr_playing_title = 'A SURPRISE' #find the title from radio
+        lg.info('surprise')
+        curr_playing_title = 'STREAM' #find the title from radio
         m= MetaInfo()
-        cmd = ["cvlc",radio_stream]
+        cmd = ["vlc",radio_stream]
+        dttm_now = datetime.datetime.utcnow()
+        ux_ts = calendar.timegm(dttm_now.utctimetuple())
+        lg.warn('RADIO/%s/%s/%s/%s/%s','STREAM','user',int(float(ux_ts)),settings.ACTIVE_TITLE,settings.ACTIVE_PID)
 
     lg.info("active pid %s",settings.ACTIVE_PID)
     
     #async
 
     if settings.ACTIVE_PID !=0:
+        dttm_now = datetime.datetime.utcnow()
+        ux_ts = calendar.timegm(dttm_now.utctimetuple())
+        lg.warn('SKIPPLAY/%s/%s/%s/%s/%s',curr_playing_title,'user',int(float(ux_ts)),settings.ACTIVE_TITLE,settings.ACTIVE_PID)
         try:
             r = kill_all_vlc()
             (settings.ACTIVE_PID )
@@ -167,6 +190,8 @@ def play_by_out_file(input:PlayRequest,autoplay:bool=True,visualiser:bool=False)
     try:
 
         if not visualiser:
+            lg.debug('no visual')
+            lg.debug('cmd %s',cmd)
             f = subprocess.Popen(cmd)
         else:
             cmd = cmd + visualiser_spec
@@ -175,6 +200,10 @@ def play_by_out_file(input:PlayRequest,autoplay:bool=True,visualiser:bool=False)
         
         settings.ACTIVE_TITLE = curr_playing_title
         lg.info('m %s',m.dict())
+        lg.info('m _%s',m.history_ts)
+        dttm_now = datetime.datetime.utcnow()
+        ux_ts = calendar.timegm(dttm_now.utctimetuple())
+        lg.warn('PLAY/%s/%s/%s/%s/%s',m.id,'user',int(float(ux_ts)),settings.ACTIVE_TITLE,settings.ACTIVE_PID)
         return PlayResponse(meta=m,pid=f.pid)
     except Exception as e:
         return f"PlayerException {e.__class__}"
@@ -189,6 +218,9 @@ def kill(req:KillRequest=None):
         if r:
             settings.ACTIVE_PID=0
             settings.ACTIVE_TITLE='null'
+            dttm_now = datetime.datetime.utcnow()
+            ux_ts = calendar.timegm(dttm_now.utctimetuple())
+            lg.warn('KILL/%s/%s/%s/%s/%s','N','user',int(float(ux_ts)),settings.ACTIVE_TITLE,settings.ACTIVE_PID)
             return True
 
     except Exception as e:
@@ -210,10 +242,13 @@ def kill(req:KillRequest=None):
 def control_mixer(req:MixerRequest):
     lg.info(req.__dict__)
     value = mixer.getvolume()[0]
- 
+    dttm_now = datetime.datetime.utcnow()
+    ux_ts = calendar.timegm(dttm_now.utctimetuple())
     if req.volume=='UP':
         value = value+req.step_size
+        lg.warn('VOLUMEUP/%s/%s/%s/%s/%s','N','user',int(float(ux_ts)),'N',settings.ACTIVE_PID)
     elif req.volume=='DOWN':
+        lg.warn('VOLUMEDOWN/%s/%s/%s/%s/%s','N','user',int(float(ux_ts)),'N',settings.ACTIVE_PID)
         value = value-req.step_size
     else:
         lg.exception('Invalid Command')
@@ -244,5 +279,8 @@ def list():
         else: 
             pass
     # res = os.listdir(os.curdir)
+    dttm_now = datetime.datetime.utcnow()
+    ux_ts = calendar.timegm(dttm_now.utctimetuple())
+    lg.warn('LIST/%s/%s/%s/%s/%s',len(res['media']),'user',int(float(ux_ts)),settings.ACTIVE_TITLE,settings.ACTIVE_PID)
     return res
     
