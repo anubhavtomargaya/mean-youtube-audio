@@ -86,7 +86,7 @@ def get_mp4_meta(file_):
             lg.info('stuff %s %s %s',history_ts_,views_,id_)
             ttl_ =media_file['title'][0]
             thmb_=  media_file['comment'][0]
-            lg.info('stuff %s %s %s',ttl_,thmb_)
+            lg.info('stuff %s %s',ttl_,thmb_)
         
         except Exception as e:
             id_,views_,length_,thmb_='hi',0,100,'url'
