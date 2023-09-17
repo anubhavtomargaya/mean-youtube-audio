@@ -6,3 +6,5 @@ def get_meta(url):
     print(v)
     
 get_meta(url)
+
+##this was used to test audio playing in raspi
