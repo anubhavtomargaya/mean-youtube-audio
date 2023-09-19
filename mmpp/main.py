@@ -180,8 +180,9 @@ def read_root():
                 }}
 
                 #musicPlayer img {{
-                    max-width: 70%;
-                    border-radius: .2rem;
+                    max-width: 60%;
+                    max-height: 60%;
+                    border-radius: 2rem;
                     margin:.5rem; 
                 }}
 
