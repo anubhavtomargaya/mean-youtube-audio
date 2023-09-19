@@ -74,6 +74,7 @@ async def get_page():
     return HTMLResponse(content=html_content)
 
 def get_current_song():
+    lg.info("PID %s",settings.ACTIVE_PID)
     if settings.ACTIVE_PID!=0:
         dttm_now = datetime.datetime.utcnow()
         ux_ts = calendar.timegm(dttm_now.utctimetuple())
@@ -81,13 +82,13 @@ def get_current_song():
         if not settings.ACTIVE_TITLE=='STREAM':
             f = f'{settings.ACTIVE_TITLE}.mp4'
             m = get_mp4_meta(f) #MetaInfo
-            b = {   "meta": m,"pid": settings.ACTIVE_PID }
+            b = {   "meta": m.model_dump(),"pid": settings.ACTIVE_PID }
     
             # r = {"pid":settings.ACTIVE_PID ,"meta":m.d }
-            return m
+            return b
         else:
             b = {   "meta":settings.ACTIVE_TITLE ,"pid": settings.ACTIVE_PID }
-            return m
+            return b
     else:
         return None
 
@@ -100,7 +101,8 @@ def read_root():
     current_song = get_current_song()
 
     # Check if 'current_song' or 'meta' is None, and if so, use default values
-    if not current_song or 'meta' not in current_song or not isinstance(current_song['meta'], dict):
+    if not current_song or 'meta' not in current_song or not isinstance(current_song['meta'],dict ):
+        lg.info('NO META" %s',current_song)
         current_song = {
             'meta': {
                 'title': 'No song currently playing',
@@ -112,7 +114,7 @@ def read_root():
     html_content = f"""
     <html>
         <head>
-            <meta http-equiv="refresh" content="5">
+            <meta http-equiv="refresh" content="360">
             <style>
                 body {{
                     height: 100vh;
