@@ -74,6 +74,7 @@ class SpectrometerVisualiser(BaseModel):
 ## added / route in shome branch to show bunch of stats and current home status
 ##use this to build "how many users at home" and "whats happening in home" by intercepting the home network using pi
 
+
 @app.get("/ydl/api/v1/now")
 def now_playing():
     if settings.ACTIVE_PID!=0:
