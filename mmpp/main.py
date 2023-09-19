@@ -114,12 +114,12 @@ def read_root():
     html_content = f"""
     <html>
         <head>
-            <meta http-equiv="refresh" content="120">
+            <meta http-equiv="refresh" content="60">
             <style>
                 body {{
                     height: 100vh;
-                    margin: 0;
-                    overflow:hidden;
+                    margin: 0rem 0rem 0rem 0rem;
+                    overflow:auto;
                     font-family: 'Arial', sans-serif;
                     display: flex;
                     flex-direction:column;
@@ -148,6 +148,7 @@ def read_root():
                     padding: 20px;
                     border-radius: 10px;
                     font-size: 24px;
+                    margin-top: 20px;
                     margin-bottom: 20px;
                 }}
 
@@ -192,7 +193,7 @@ def read_root():
         </head>
         <body>
             <div id="musicPlayer">
-                <img src="{current_song['meta']['yt_thmb']}" alt="Thumbnail for current song">
+                <img src="{current_song['meta']['yt_thmb']}" alt="Thumbnail">
                 <h4>Now Playing </h4>
                 <p><span>{current_song['meta']['title']}</span>
                 
