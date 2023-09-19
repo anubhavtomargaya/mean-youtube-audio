@@ -119,7 +119,7 @@ def read_root():
                 body {{
                     height: 100vh;
                     margin: 0;
-                    overflow:auto;
+                    overflow:hidden;
                     font-family: 'Arial', sans-serif;
                     display: flex;
                     flex-direction:column;
@@ -181,8 +181,7 @@ def read_root():
 
                 #musicPlayer img {{
                     max-width: 60%;
-                    max-height: 60%;
-                    border-radius: 2rem;
+                    border-radius: .2rem;
                     margin:.5rem; 
                 }}
 
