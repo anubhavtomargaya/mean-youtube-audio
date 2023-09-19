@@ -119,7 +119,7 @@ def read_root():
                 body {{
                     height: 100vh;
                     margin: 0;
-                    overflow:hidden;
+                    overflow:auto;
                     font-family: 'Arial', sans-serif;
                     display: flex;
                     flex-direction:column;
