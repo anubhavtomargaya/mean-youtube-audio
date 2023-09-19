@@ -96,7 +96,7 @@ def get_current_song():
 def read_root():
     devices = get_connected_devices()
     number_of_devices = len(devices)
-    bg_color = "green" if number_of_devices <= 5 else "red"
+    bg_color = "green" if number_of_devices <= 7 else "red"
     
     current_song = get_current_song()
 
