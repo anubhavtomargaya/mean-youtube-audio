@@ -34,6 +34,199 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from fastapi import FastAPI, Request
+# from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+from starlette.responses import HTMLResponse
+
+from get_users import get_connected_devices,get_all_interfaces
+app.mount("/static", StaticFiles(directory="static"), name="static")
+# templates = Jinja2Templates(directory="templates")
+
+@app.get("/if/")
+async def get_page():
+    interfaces = get_all_interfaces()
+    
+    # Constructing the HTML with inline styles and scripts
+    html_content = f"""
+    <html>
+    <head>
+        <style>
+            body {{ font-family: Arial, sans-serif; margin: 0; padding: 0; }}
+            .container {{ max-width: 800px; margin: 50px auto; }}
+            ul {{ list-style-type: none; padding: 0; }}
+            li {{ padding: 5px 0; }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>Network Interfaces</h2>
+            <ul>
+                {" ".join([f'<li>{interface}</li>' for interface in interfaces])}
+            </ul>
+        </div>
+        <script>
+            console.log("Inline script loaded and ready!");
+        </script>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
+
+def get_current_song():
+    if settings.ACTIVE_PID!=0:
+        dttm_now = datetime.datetime.utcnow()
+        ux_ts = calendar.timegm(dttm_now.utctimetuple())
+        lg.warn('NOW/%s/%s/%s/%s/%s','CHECK','user',int(float(ux_ts)),settings.ACTIVE_TITLE,settings.ACTIVE_PID)
+        if not settings.ACTIVE_TITLE=='STREAM':
+            f = f'{settings.ACTIVE_TITLE}.mp4'
+            m = get_mp4_meta(f) #MetaInfo
+            b = {   "meta": m,"pid": settings.ACTIVE_PID }
+    
+            # r = {"pid":settings.ACTIVE_PID ,"meta":m.d }
+            return b
+        else:
+            b = {   "meta":settings.ACTIVE_TITLE ,"pid": settings.ACTIVE_PID }
+            return b
+    else:
+        return None
+    return {
+        'meta': {
+            'history_ts': 1692137947,
+            'id': '6MgsHSAcI9k',
+            'title': 'Nadaan Parinde',
+            'length': 402,
+            'views': 64112755,
+            'yt_thmb': 'https://i.ytimg.com/vi/6MgsHSAcI9k/hq720.jpg?sqp=-oaymwEXCNUGEOADIAQqCwjVARCqCBh4INgESFo&rs=AOn4CLAGukEnqQmixfmaaXOjR_RWUkVAbw'
+        },
+        'pid': 178980
+    }
+
+@app.get("/", response_class=HTMLResponse)
+def read_root():
+    devices = get_connected_devices()
+    number_of_devices = len(devices)
+    bg_color = "green" if number_of_devices <= 5 else "red"
+    
+    current_song = get_current_song()
+
+    # Check if 'current_song' or 'meta' is None, and if so, use default values
+    if not current_song or 'meta' not in current_song or not isinstance(current_song['meta'], dict):
+        current_song = {
+            'meta': {
+                'title': 'No song currently playing',
+                'yt_thmb': 'https://via.placeholder.com/200x200?text=No+Songs+Playing',
+                'views': 'N/A'
+            }
+        }
+
+    html_content = f"""
+    <html>
+        <head>
+            <meta http-equiv="refresh" content="5">
+            <style>
+                body {{
+                    height: 100vh;
+                    margin: 0;
+                    font-family: 'Arial', sans-serif;
+                    display: flex;
+                    flex-direction:column;
+                    align-items: center;
+                    justify-content: center;
+                    background: linear-gradient(-45deg, #EE7752, #E73C7E, #23A6D5, #23D5AB);
+                    background-size: 400% 400%;
+                    animation: gradient 15s ease infinite;
+                }}
+            
+
+            @keyframes gradient {{
+                0% {{
+                    background-position: 0% 50%;
+                }}
+                50% {{
+                    background-position: 100% 50%;
+                }}
+                100% {{
+                    background-position: 0% 50%;
+                }}
+            }}
+
+                #deviceCount {{
+                    background-color: {bg_color};
+                    padding: 20px;
+                    border-radius: 10px;
+                    font-size: 24px;
+                    margin-bottom: 20px;
+                }}
+
+                table {{
+                    border-collapse: collapse;
+                    border-spacing: 0;
+                    width: 70%;
+                    border: 1px solid #ddd;
+                }}
+
+                th, td {{
+                    text-align: left;
+                    padding: 8px;
+                }}
+
+                tr:nth-child(even) {{
+                    background-color: #f5f5f5;
+                }}
+
+                #musicPlayer {{
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    background-color: #aba;
+                    color: #FFF;
+                    padding: .2rem;
+                    border-radius: 15px;
+                    
+                    width: 50%;
+                }}
+
+                #musicPlayer img {{
+                    max-width: 70%;
+                    border-radius: .2rem;
+                    margin:.5rem; 
+                }}
+
+                #musicPlayer h3, #musicPlayer h4 {{
+                    margin: .5rem;
+                }}
+            </style>
+        </head>
+        <body>
+            <div id="musicPlayer">
+                <img src="{current_song['meta']['yt_thmb']}" alt="Thumbnail for current song">
+                <h4>Now Playing </h4>
+                <p><span>{current_song['meta']['title']}</span>
+                
+                    Views: {current_song['meta']['views']}</p>
+            </div>
+            <div id="deviceCount">Devices Connected: {number_of_devices}</div>
+            <table>
+                <tr>
+                    <th>IP Address</th>
+                    <th>MAC Address</th>
+                    <th>State</th>
+                    <th>Time in State (seconds)</th>
+                </tr>
+    """
+
+    for device in devices:
+        html_content += f"<tr><td>{device['ip']}</td><td>{device['mac']}</td><td>{device['state']}</td><td>{device['time_in_state']:.2f}</td></tr>"
+
+    html_content += """
+            </table>
+        </body>
+    </html>
+    """
+
+    return HTMLResponse(content=html_content)
+
 
 class DownloadRequest(BaseModel):
     url : str
@@ -71,6 +264,7 @@ class SpectrometerVisualiser(BaseModel):
     peakWd:int
     peakHt:int
     
+
 @app.get("/ydl/api/v1/now")
 def now_playing():
     if settings.ACTIVE_PID!=0:
