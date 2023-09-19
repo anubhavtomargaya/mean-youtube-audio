@@ -77,30 +77,19 @@ def get_current_song():
     if settings.ACTIVE_PID!=0:
         dttm_now = datetime.datetime.utcnow()
         ux_ts = calendar.timegm(dttm_now.utctimetuple())
-        lg.warn('NOW/%s/%s/%s/%s/%s','CHECK','user',int(float(ux_ts)),settings.ACTIVE_TITLE,settings.ACTIVE_PID)
+        # lg.warn('NOW/%s/%s/%s/%s/%s','CHECK','user',int(float(ux_ts)),settings.ACTIVE_TITLE,settings.ACTIVE_PID)
         if not settings.ACTIVE_TITLE=='STREAM':
             f = f'{settings.ACTIVE_TITLE}.mp4'
             m = get_mp4_meta(f) #MetaInfo
             b = {   "meta": m,"pid": settings.ACTIVE_PID }
     
             # r = {"pid":settings.ACTIVE_PID ,"meta":m.d }
-            return b
+            return m
         else:
             b = {   "meta":settings.ACTIVE_TITLE ,"pid": settings.ACTIVE_PID }
-            return b
+            return m
     else:
         return None
-    return {
-        'meta': {
-            'history_ts': 1692137947,
-            'id': '6MgsHSAcI9k',
-            'title': 'Nadaan Parinde',
-            'length': 402,
-            'views': 64112755,
-            'yt_thmb': 'https://i.ytimg.com/vi/6MgsHSAcI9k/hq720.jpg?sqp=-oaymwEXCNUGEOADIAQqCwjVARCqCBh4INgESFo&rs=AOn4CLAGukEnqQmixfmaaXOjR_RWUkVAbw'
-        },
-        'pid': 178980
-    }
 
 @app.get("/", response_class=HTMLResponse)
 def read_root():
