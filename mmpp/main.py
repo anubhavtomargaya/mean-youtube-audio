@@ -114,7 +114,7 @@ def read_root():
     html_content = f"""
     <html>
         <head>
-            <meta http-equiv="refresh" content="60">
+            <meta http-equiv="refresh" content="360">
             <style>
                 body {{
                     height: 100vh;
