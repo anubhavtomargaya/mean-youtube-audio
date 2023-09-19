@@ -106,7 +106,7 @@ def read_root():
         current_song = {
             'meta': {
                 'title': 'No song currently playing',
-                'yt_thmb': 'https://via.placeholder.com/200x200?text=No+Songs+Playing',
+                'yt_thmb': 'https://via.placeholder.com/200x200?text=No+Songs+Playing+in+teen+cross',
                 'views': 'N/A'
             }
         }
@@ -114,11 +114,12 @@ def read_root():
     html_content = f"""
     <html>
         <head>
-            <meta http-equiv="refresh" content="360">
+            <meta http-equiv="refresh" content="120">
             <style>
                 body {{
                     height: 100vh;
                     margin: 0;
+                    overflow:hidden;
                     font-family: 'Arial', sans-serif;
                     display: flex;
                     flex-direction:column;
