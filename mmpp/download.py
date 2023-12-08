@@ -120,10 +120,10 @@ def download(url,play:bool=True,autoplay:bool=True)-> Records:
     st = datetime.datetime.utcnow()
     lg.info('downloading file.....')
     video = yt.streams.filter(only_audio=True).first()
-    lg.info('downloading file.....') #catch errors here
+    #catch errors here
     out_file = video.download(output_path=".") #get full path of downloaded file as output
     file_ = out_file.split('/')[-1] #used for playing the file from vlc CLI later
-    lg.info('downloading file.....')
+    lg.info('downloaded file.....')
     lg.info('out_file: %s',out_file)
     et = datetime.datetime.utcnow()
     lg.info('downloading meta.....')
