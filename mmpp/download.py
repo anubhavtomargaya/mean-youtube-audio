@@ -154,14 +154,14 @@ def download(url,play:bool=True,autoplay:bool=True)-> Records:
         if not autoplay:
             cmd = base_cmd
         else:
-            files=list_()
 
 
             # print('files',files)
             # f_list = list(filter(lambda item: item is not None, files))
 
             # print('flist',files)
-            up_next = random.shuffle(files)
+            # up_next = random.shuffle(files)
+            files=list_()
             print('up',files)
             cmd = base_cmd + files + ['--play-and-exit']
             print(cmd)
